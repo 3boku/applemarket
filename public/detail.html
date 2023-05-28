@@ -11,6 +11,15 @@
       integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ"
       crossorigin="anonymous"
     />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      .detail-pic {
+        width: 100%;
+        height: 300px;
+        background-size: cover;
+        background-position: center;
+      }
+    </style>
   </head>
   <body>
     <script src="https://www.gstatic.com/firebasejs/8.6.5/firebase-app.js"></script>
@@ -80,71 +89,57 @@
       </div>
     </nav>
 
-    <div class="container mt-3">
-      <input
-        type="text"
-        class="form-control mt-2"
-        id="title"
-        value=""
-        placeholder="title"
-        name="inputValue"
-      />
-      <textarea class="form-control mt-2" id="content">content</textarea>
-      <input
-        type="text"
-        class="form-control mt-2"
-        id="price"
-        placeholder="price"
-      />
-      <input class="form-control mt-2" type="file" id="image" />
-      <button class="btn btn-danger mt-3" id="send">올리기</button>
+    <div class="container">
+      <div
+        class="detail-pic my-4"
+        style="background-image: url('https://placeimg.com/640/380/tech')"
+      ></div>
+      <div>
+        <h5 id="author"></h5>
+        <hr />
+        <h5 class="title" id="title">상품명</h5>
+        <p class="price" id="price">가격</p>
+        <h5>내용</h5>
+        <p class="content" id="content">내용</p>
+      </div>
+      <button id="edit">수정</button>
+      <button id="chat">채팅</button>
     </div>
 
     <script>
       const db = firebase.firestore();
       const storage = firebase.storage();
-      $("#send").click(function () {
-        var file = document.querySelector("#image").files[0];
-        var storageRef = storage.ref();
-        var 저장할경로 = storageRef.child("image/" + file.name);
-        var 업로드작업 = 저장할경로.put(file);
 
-        업로드작업.on(
-          "state_changed",
-          // 변화시 동작하는 함수
-          null,
-          //에러시 동작하는 함수
-          (error) => {
-            console.error("실패사유는", error);
-          },
-          // 성공시 동작하는 함수
-          () => {
-            업로드작업.snapshot.ref.getDownloadURL().then((url) => {
-              console.log("업로드된 경로는", url);
-              var Saved = {
-                제목: $("#title").val(),
-                가격: parseInt($("#price").val()),
-                내용: $("#content").val(),
-                날짜: new Date(),
-                이미지: url,
-                uid: JSON.parse(localStorage.getItem("user")).uid,
-                이름: JSON.parse(localStorage.getItem("user")).displayName,
-              };
-              db.collection("product")
-                .add(Saved)
-                .then((result) => {
-                  console.log(result);
-                  window.location.href = "/index.html";
-                })
-                .catch((err) => {
-                  console.log(err);
-                });
-            });
-          }
-        );
+      var 쿼리스트링 = new URLSearchParams(window.location.search);
+      db.collection("product")
+        .doc(쿼리스트링.get("id"))
+        .get()
+        .then((result) => {
+          상품명 = result.data().제목;
+          판매자uid = result.data().uid;
+          $("#author").html("올린사람 : " + result.data().이름),
+            $("#title").html("상품명: " + result.data().제목),
+            $("#price").html(result.data().가격 + "원"),
+            $("#content").html(result.data().내용),
+            $(".detail-pic").css(
+              "background-image",
+              `url(${result.data().이미지})`
+            );
+        });
+
+      $("#edit").click(() => {
+        window.location.href = "/edit.html?id=" + 쿼리스트링.get("id");
       });
-
-      //add를 사용한다.
+      var 판매자uid;
+      var 상품명;
+      $("#chat").click(() => {
+        var 데이터 = {
+          who: [JSON.parse(localStorage.getItem("user")).uid, 판매자uid],
+          product: 상품명,
+          date: new Date(),
+        };
+        db.collection("chatroom").add(데이터);
+      });
     </script>
   </body>
 </html>
