@@ -2,7 +2,7 @@
 
 코딩애플 당근마켓 클론코딩
 
-바로가기 [here](https://applemarket-2fbc1.web.app)
+바로가기 [클릭!](https://applemarket-2fbc1.web.app)
 
 # 메인페이지
 
